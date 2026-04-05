@@ -2,6 +2,8 @@
 # Load, environment variables, packages and custom functions,
 
 ## Environment variables ----
+# Portable Git PATH
+Sys.setenv(PATH = paste("C:/Users/EfejiroAshano(NHSSou/OneDrive - SE London ICB/Documents/PortableGit/bin", Sys.getenv("PATH"), sep = ";"))
 
 ## Packages ----
 if(!require('pacman')){
@@ -10,8 +12,12 @@ if(!require('pacman')){
 
 pacman::p_load(
   # Utility
-  'usethis'
+  'readxl'
+  ,'tictoc'
+  # Version control
+  ,'usethis'
   ,'gert'
+  ,'gitcreds'
   
   # Data manipulation
   ,'data.table'
@@ -19,10 +25,18 @@ pacman::p_load(
   ,'janitor'
   ,'skimr'
   
-  # Machine learning and AI
+  # Statistics, Machine learning and AI
   ,'gemini.R'
   ,'mlr3'
   ,'mlr3learners'
+  ,'mlr3cluster'
+  ,'mlr3pipelines'
+  ,'ranger'
+  ,'MASS'
+  ,'glmnet'
+  ,'iml'
+  ,'DHARMa'
+  ,'clue'
   
   # Graphing
   ,'plotly'
