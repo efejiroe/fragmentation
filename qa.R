@@ -38,3 +38,12 @@ dt[, (unique_tfcs) := lapply(unique_tfcs, function(x) {
 
 d[, unique_tfc_count := rowSums(.SD > 0, na.rm = TRUE), .SDcols = cols]
 # "number_of_tfcs" approximates to this
+
+
+# Join TFC count data
+if(skip == TRUE){
+  tfcs <- readRDS('data/tfcs.RDS')
+  d <- merge(d, tfcs, by = 'ID')
+}
+
+charvars <- names(d)[sapply(d, is.character)]

@@ -2,10 +2,10 @@ rm(list = ls())
 
 source('ini.R')
 skip <- TRUE
-tic(msg = "EDA: Regression Analysis")
+tic(msg = "EDA: Regression Analysis 2")
 
-# Does fragmentation predict outcomes e.g. ED attendances, non-elective admission, DNA rates.
-# If yes, what is fragmentations tipping point i.e. the point at which outcomes worsen exponentially?
+# What lead or Lag metric predicts FCI?
+# Ideally, we want the metric to be caught earlier in a patients journey.
 
 d <- readRDS('data/subset.RDS')
 
@@ -17,13 +17,24 @@ delCols <- c(
   ,'patient_group' # We got age and LT count already.
   ,'total_bookings'
   ,'number_of_dnas' # DNA rates instead
+  
+  # Lag indicators
+  ,'nel_admissions'
+  ,'total_bed_days'
+  ,'ed_attendances'
+  ,'total_tfcs'
+  ,'number_of_tfcs'
+  ,'number_of_provider_site_tfc_combos'
+  ,'number_of_providers'
+  ,'number_of_provider_sites'
+  ,'secon_by_provider_site_tfc'
 )
 
 m <- d[, !..delCols]
 
 m <- na.omit(m)
 
-sample_prop <- 0.20 # adjust for quicker runs
+sample_prop <- 0.99 # adjust for quicker runs
 m <- m[sample(.N, .N * sample_prop)] 
 
 message(paste0('Sample size: ', nrow(m)))
@@ -36,40 +47,36 @@ m$ethnic_broad_group_name <- relevel(as.factor(m$ethnic_broad_group_name), ref =
 m$imd_decile_number <- relevel(as.factor(m$imd_decile_number), ref = "10")
 
 # Regressions to find association
-targets <- c('ed_attendances', 'number_of_dnas', 'nel_admissions') # Use each others as controls
-
-targets <- c('ed_attendances')
+targets <- c('fci_by_provider_site_tfc')
 
 # Learner list
 mlr_learners$keys()
 
 for(target in targets){
   
+  Learning_task = as_task_regr(
+    m, 
+    target = target,
+    id = "Fragmentation Regression"
+  )
+  
+  # 1. Random forest/X-boost and tipping point
+  learner_rf = lrn("regr.ranger", importance = "permutation")
+  learner_rf$train(Learning_task)
+  
+  # Save importance
+  importance_scores <- learner_rf$importance()
+  importance_tbl <- data.table(
+    features = names(importance_scores),
+    scores = as.numeric(importance_scores)
+  )
+  
+  fwrite(importance_tbl, paste0('data/importance_',target,'.csv'))
+  message <- paste0("RF feature importance for ",target," saved.\n")
+  cat(message)
+  
+  # Generate s-curve (Partial Dependence)
   if(skip == FALSE){
-    
-    # 1. Random forest/X-boost and tipping point
-    
-    Learning_task = as_task_regr(
-      m, 
-      target = target,
-      id = "Fragmentation Regression"
-    )
-    
-    learner_rf = lrn("regr.ranger", importance = "permutation")
-    learner_rf$train(Learning_task)
-    
-    # Save importance
-    importance_scores <- learner_rf$importance()
-    importance_tbl <- data.table(
-      features = names(importance_scores),
-      scores = as.numeric(importance_scores)
-    )
-    
-    fwrite(importance_tbl, paste0('data/importance_',target,'.csv'))
-    message <- paste0("RF feature importance for ",target," saved.\n")
-    cat(message)
-    
-    # Generate s-curve (Partial Dependence)
     predictor = Predictor$new(learner_rf, data = m, y = target)
     pdp = FeatureEffect$new(predictor, feature = "fci_by_provider_site_tfc", method = "pdp")
     fwrite(pdp$results, paste0('data/pdp_', target, '.csv'))
@@ -100,11 +107,6 @@ for(target in targets){
   
   dev.off()
 } 
-toc() # 16 minutes
+toc() # How Long?
 
 # What this tells us:
-# FCI is associated with of DNA, ED and NEL, controlled for patient demographics. FCI outranks DNA, NEL and ED in association.
-# ED = 0.8; NEL = 1.1, DNA = 2.1
-# Outcomes remains stable till a fragmentation threshold of 0.80.
-# Fragmentation affects both cohorts identically. Need for better profiles (k-means)?
-# To prove FCI as a predictor rather than circular association, we need temporal data (ED and NEL need to come from a future period)  

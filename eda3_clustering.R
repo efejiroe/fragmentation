@@ -30,7 +30,7 @@ learner_km =lrn('clust.kmeans', centers = 3) # What informed this?
 
 # Sampling for training
 set.seed(123)
-perc <- 0.35
+perc <- 0.25
 sample_size <- floor(cluster_task$nrow * perc)
 
 sample_task = cluster_task$clone()$filter(sample(seq_len(cluster_task$nrow), sample_size))
@@ -51,38 +51,32 @@ d[clusters_tbl, cluster_id := partition, on = .(link_id = row_ids)]
 
 
 # Cluster analysis
-d[, .(
+tbl <- d[, .(
    N = .N,
    # Fragmentation metrics
-   avg_fci = median(fci_by_provider_site_tfc),
-   avg_secon = median(secon_by_provider_site_tfc), # Essential for Nomad identification (sequential continuity)
-   avg_ltc = median(total_ltc), # Patient Characteristics
-   avg_dna = median(number_of_dnas)/median(total_bookings), # Patient Behaviour
-   avg_tfcs = median(total_tfcs)/median(number_of_tfcs),  # Service metrics
-   # Outcomes
-   avg_ed = median(ed_attendances),
-   avg_nel = median(nel_admissions),
-   avg_los = median(total_bed_days)
+   avg_fci = mean(fci_by_provider_site_tfc),
+   avg_secon = mean(secon_by_provider_site_tfc), # Essential for Nomad identification (sequential continuity)
+   avg_ltc = mean(total_ltc), # Patient Characteristics
+   # Outcome metrics
+   avg_dna = mean(number_of_dnas)/mean(total_bookings), # Patient Behaviour
+   avg_ed = mean(ed_attendances),
+   avq_nel = mean(nel_admissions),
+   ave_stay = mean(total_bed_days)
+   
+   # Demographics
    
  ), by = cluster_id]
+
+fwrite(tbl, 'data/cluster_analysis.csv')
 
 # Hypothetical profiles
 # Clusters 1: The high-utility navigators
 # Cluster 2: The fragile crisis cohort
 # Cluster 3: The low complexity nomads
 
-# Attach demographic data to test these.
+# Save Clusters lookup
+saveRDS(d[, c('ID', 'cluster_id')], 'data/clusters.RDS')
 
-# Attached
-m[d, 
-  `:=`(
-    age_band_name = i.age_band_name, 
-    ethnic_broad_group_name = i.ethnic_broad_group_name, 
-    imd_decile_number = i.imd_decile_number
-  ), 
-  on = .(ID)]
-
-# Clean up environment
 toc()
 
 # What this tells us:
