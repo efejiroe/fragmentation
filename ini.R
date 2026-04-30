@@ -44,6 +44,14 @@ pacman::p_load(
 )
 ## Custom functions ----
 
+# Auto GitHub push-and-pull
+git_update <- function(){
+  x = git_add('.')
+  if(length(x$file) > 0){
+    git_commit('New commit')
+    git_pull()
+    git_push()}else{message('Nothing to push!')}}
+
 ## QA ----
 cat('Dependencies loaded.\n')
 search()
