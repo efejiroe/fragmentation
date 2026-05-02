@@ -24,22 +24,6 @@ The analysis primarily utilizes the **Fragmentation of Care Index (FCI)** as a b
 | **UPC** | Ratio of visits to the most frequent provider over total visits. | Widely used in GP research to predict admission risks. |
 | **Bice-Boxerman** | Weights both frequency and dispersion of visits. | Academic "gold standard" for statistical reliability. |
 
-## Repository Structure
-
-### `/Docs`
-Contains strategic presentations and technical comparisons of fragmentation metrics:
-* `Comparison of Fragmentation Indices.docx`: Summary of core metrics and their international implementations.
-* `Fragmentation - outpatients summary - for Frailty group.pdf`: Analysis of the 65+ cohort and potential cost-benefit summaries.
-* `matrix of opportunity v2.pptx`: Strategic framework for whole pathway redesign and digital transformation.
-
-### `/R/data`
-Contains the technical foundation for the fragmentation tool:
-* `data-summary.txt`: Statistical summary of 197,726 patient records, including booking volumes and attendance rates.
-* `schema.csv`: Data dictionary and sample records tracking demographics, provider sites, and Treatment Function Codes (TFCs).
-
-### `/Docs/Screenshots`
-Visual outputs from the Business Intelligence (BI) tool showing median fragmentation scores broken down by borough, age band, and deprivation decile.
-
 ## Targeted Opportunities
 The project identifies several areas for transformation to reduce fragmentation:
 1.  **Improving Referral Pathways**: Standardising triage and using specialist advice to prevent unnecessary hospital visits.
